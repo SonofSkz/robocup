@@ -13,8 +13,9 @@ import com.github.robocup_atan.atan.model.enums.ServerParams;
 import com.github.robocup_atan.atan.model.enums.ViewAngle;
 import com.github.robocup_atan.atan.model.enums.ViewQuality;
 import com.github.robocup_atan.atan.model.enums.Warning;
+import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -34,7 +35,7 @@ import java.util.Random;
  */
 public class Simple implements ControllerPlayer {
     private static int    count         = 0;
-    private static Logger log           = Logger.getLogger(Simple.class);
+//    private static Logger log           = Logger.getLogger(Simple.class);
     private Random        random        = null;
     private boolean       canSeeOwnGoal = false;
     private boolean       canSeeNothing = true;
@@ -44,9 +45,11 @@ public class Simple implements ControllerPlayer {
     
     private boolean goalie = false;
     private int playerState = 0;
-    private double distanceOwnPlayer = 0;
     private double distanceOtherGoal = 0;
+    private boolean canSeeOtherGoal = false;
     private double directionOtherGoal = 0;
+    private final ArrayList<PlayerData> visibleOwnPlayers;
+    private final ArrayList<PlayerData> visibleOtherPlayers;
     
     private double        directionBall;
     private double        directionOwnGoal;
@@ -62,18 +65,21 @@ public class Simple implements ControllerPlayer {
      */
     public Simple() {
         random = new Random(System.currentTimeMillis() + count);
-        
+        visibleOwnPlayers = new ArrayList();
+        visibleOtherPlayers = new ArrayList();
 //        distanceBall = 50;
         count++;
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @return  */
     @Override
     public ActionsPlayer getPlayer() {
         return player;
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @param p */
     @Override
     public void setPlayer(ActionsPlayer p) {
         player = p;
@@ -83,9 +89,12 @@ public class Simple implements ControllerPlayer {
     @Override
     public void preInfo() {
         canSeeOwnGoal = false;
+        canSeeOtherGoal = false;
         canSeeBall    = false;
         goalie = getPlayer().getNumber() == 1;
         canSeeNothing = true;
+        visibleOwnPlayers.clear();
+        visibleOtherPlayers.clear();
     }
 
     /** {@inheritDoc} */
@@ -94,19 +103,19 @@ public class Simple implements ControllerPlayer {
         //before the beginning of the game get all players to rotate and 'find' all of the
         //in game components
         if(playMode == PlayMode.BEFORE_KICK_OFF){
-            getPlayer().turn(20);
+            getPlayer().turn(60);
         }else{ // continue with normal behaviour
             //goalie behaviour
-            if(goalie){
-                goalieBehaviour();
+            if(canSeeNothing){
+                getPlayer().turn(60);
             }else{
-                generalBehaviour();
+                if(goalie){
+                    goalieBehaviour();
+                }else{
+                    generalBehaviour();
+                }
             }
-//            //left back behaviour
-//            else if(getPlayer().getNumber() == 2){
-//                leftBackBehaviour();
-//            }
-            //general Behaviour
+            
         }
     }
     
@@ -146,76 +155,89 @@ public class Simple implements ControllerPlayer {
     }
     
     private void generalBehaviour(){
-        //tackles ball if no other player is near it
-        if(Math.abs(distanceOwnPlayer - distanceBall) < 2){
-            getPlayer().bye();
-//            getPlayer().turn(directionOtherGoal);
-//            getPlayer().dash(100);
-        }else{
-            if (canSeeNothing) {
-                canSeeNothingAction();
-            } else if (canSeeOwnGoal) {
-                if ((distanceOwnGoal < 40) && (distanceOwnGoal > 10)) {
-                    canSeeOwnGoalAction();
-                } else if (canSeeBall) {
-                    canSeeBallAction();
-                } else {
-                    canSeeAnythingAction();
-                }
-            } else if (canSeeBall) {
-                canSeeBallAction();
-            } else {
-                canSeeAnythingAction();
-            }
-        }
-        
-//        if (canSeeNothing) {
-//            canSeeNothingAction();
-//        } else if (canSeeOwnGoal) {
-//            if ((distanceOwnGoal < 40) && (distanceOwnGoal > 10)) {
-//                canSeeOwnGoalAction();
-//            } else if (canSeeBall) {
-//                canSeeBallAction();
-//            } else {
-//                canSeeAnythingAction();
-//            }
-//        } else if (canSeeBall) {
-//            canSeeBallAction();
-//        } else {
-//            canSeeAnythingAction();
+        //finds distance between the closest player and the ball
+        double distanceClosestToBall = 104e1;
+        if(!canSeeBall) playerState = 0;
+        if(playerState == 0){
+            if(!canSeeBall) getPlayer().turn(60);
+            if(canSeeBall) playerState = 1;
+        }if(playerState == 1){
+            for(PlayerData p : visibleOwnPlayers)
+                if(p.getDistanceTo() - distanceBall < distanceClosestToBall)
+                    distanceClosestToBall = p.getDistanceTo() - distanceBall;
+            if(distanceClosestToBall > distanceBall) playerState = 2;
+            else playerState = 0;
+        }if(playerState == 2){
+            dribbleTowardOtherGoal();
+        }//if(playerState == 3){
+//            markOtherPlayer();
 //        }
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @param flag
+     * @param distance
+     * @param direction
+     * @param distChange
+     * @param dirChange
+     * @param bodyFacingDirection
+     * @param headFacingDirection */
     @Override
     public void infoSeeFlagRight(Flag flag, double distance, double direction, double distChange, double dirChange,
                                  double bodyFacingDirection, double headFacingDirection) {
-        
         canSeeNothing = false;
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @param flag
+     * @param distance
+     * @param direction
+     * @param distChange
+     * @param dirChange
+     * @param bodyFacingDirection
+     * @param headFacingDirection*/
     @Override
     public void infoSeeFlagLeft(Flag flag, double distance, double direction, double distChange, double dirChange,
                                 double bodyFacingDirection, double headFacingDirection) {
         canSeeNothing = false;
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @param flag
+     * @param distance
+     * @param dirChange
+     * @param direction
+     * @param distChange
+     * @param bodyFacingDirection
+     * @param headFacingDirection */
     @Override
     public void infoSeeFlagOwn(Flag flag, double distance, double direction, double distChange, double dirChange,
                                double bodyFacingDirection, double headFacingDirection) {
         canSeeNothing = false;
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @param flag
+     * @param distance
+     * @param direction
+     * @param distChange
+     * @param dirChange
+     * @param bodyFacingDirection
+     * @param headFacingDirection */
     @Override
     public void infoSeeFlagOther(Flag flag, double distance, double direction, double distChange, double dirChange,
                                  double bodyFacingDirection, double headFacingDirection) {
         canSeeNothing = false;
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @param flag
+     * @param distance
+     * @param distChange
+     * @param direction
+     * @param dirChange
+     * @param bodyFacingDirection
+     * @param headFacingDirection */
     @Override
     public void infoSeeFlagCenter(Flag flag, double distance, double direction, double distChange, double dirChange,
                                   double bodyFacingDirection, double headFacingDirection) {
@@ -225,7 +247,14 @@ public class Simple implements ControllerPlayer {
         canSeeCentre = true;
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @param flag
+     * @param distance
+     * @param direction
+     * @param distChange
+     * @param dirChange
+     * @param bodyFacingDirection
+     * @param headFacingDirection */
     @Override
     public void infoSeeFlagCornerOwn(Flag flag, double distance, double direction, double distChange, double dirChange,
                                      double bodyFacingDirection, double headFacingDirection) {
@@ -270,8 +299,19 @@ public class Simple implements ControllerPlayer {
     public void infoSeeFlagGoalOther(Flag flag, double distance, double direction, double distChange, double dirChange,
                                      double bodyFacingDirection, double headFacingDirection) {
         this.distanceOtherGoal = distance;
+        this.canSeeOtherGoal = true;
         this.directionOtherGoal = direction;
-        canSeeNothing = false;
+        this.canSeeNothing = false;
+        this.distanceOwnGoal = 104 - this.distanceOtherGoal;
+//        double y = distance*Math.sin(direction);
+//        double z = distance*Math.cos(direction);
+//        double a = (double)(104-z);
+//        double b = Math.sqrt(a*a + y*y);
+//        double top = y*y + b*b - a*a;
+//        double bot = 2*y*b;
+//        this.directionOwnGoal = Math.acos(top/bot) + 90;
+//        this.distanceOwnGoal = b;
+//        System.out.println(this.directionOwnGoal);
     }
 
     /** {@inheritDoc} */
@@ -284,13 +324,18 @@ public class Simple implements ControllerPlayer {
     /** {@inheritDoc} */
     @Override
     public void infoSeePlayerOther(int number, boolean goalie, double distance, double direction, double distChange,
-                                   double dirChange, double bodyFacingDirection, double headFacingDirection) {}
+                                   double dirChange, double bodyFacingDirection, double headFacingDirection) {
+        PlayerData pd = new PlayerData(distance, direction);
+        visibleOtherPlayers.add(pd);
+    }
 
     /** {@inheritDoc} */
     @Override
     public void infoSeePlayerOwn(int number, boolean goalie, double distance, double direction, double distChange,
                                  double dirChange, double bodyFacingDirection, double headFacingDirection) {
-        this.distanceOwnPlayer = distance;
+        
+        PlayerData p = new PlayerData(distance, direction);
+        visibleOwnPlayers.add(p);
     }
 
     /** {@inheritDoc} */
@@ -399,7 +444,6 @@ public class Simple implements ControllerPlayer {
                                 double playerDecayDeltaMin, double playerTypes, double ptMax, double randomSeed,
                                 double staminaIncMaxDeltaFactor, double subsMax) {}
 
-    /** {@inheritDoc} */
     @Override
     public void infoPlayerType(int id, double playerSpeedMax, double staminaIncMax, double playerDecay,
                                double inertiaMoment, double dashPowerRate, double playerSize, double kickableMargin,
@@ -422,6 +466,20 @@ public class Simple implements ControllerPlayer {
      * It involves running at it and kicking it...
      */
     
+    private void dribbleTowardOtherGoal(){
+        turnTowardBall();
+        if(distanceBall < 0.7){
+            getPlayer().turnNeck(directionOtherGoal);
+            if(distanceOtherGoal < 30) getPlayer().kick(100, directionOtherGoal);
+            else getPlayer().kick(10, directionOtherGoal);
+        }
+        getPlayer().dash(30);
+    }
+    
+    private void markOtherPlayer(){
+        
+    }
+    
     private void canSeeBallAction() {
         getPlayer().dash(this.randomDashValueFast());
         turnTowardBall();
@@ -430,9 +488,23 @@ public class Simple implements ControllerPlayer {
         } else if (distanceBall < 0.8){
             getPlayer().kick(20, directionOtherGoal);
         }
-        if (log.isDebugEnabled()) {
-            log.debug("b(" + directionBall + "," + distanceBall + ")");
+//        if (log.isDebugEnabled()) {
+//            log.debug("b(" + directionBall + "," + distanceBall + ")");
+//        }
+    }
+    
+    private void canSeeBallActionGoalie() {
+        getPlayer().dash(this.randomDashValueFast());
+        turnTowardBall();
+        
+        if (distanceBall < 0.7 && distanceOtherGoal < 20) {
+            getPlayer().kick(100, directionOtherGoal);
+        } else if (distanceBall < 0.8){
+            getPlayer().kick(20, directionOtherGoal);
         }
+//        if (log.isDebugEnabled()) {
+//            log.debug("b(" + directionBall + "," + distanceBall + ")");
+//        }
     }
 
     /**
@@ -441,19 +513,19 @@ public class Simple implements ControllerPlayer {
     private void canSeeAnythingAction() {
         getPlayer().dash(this.randomDashValueSlow());
         getPlayer().turn(20);
-        if (log.isDebugEnabled()) {
-            log.debug("a");
-        }
+//        if (log.isDebugEnabled()) {
+//            log.debug("a");
+//        }
     }
 
     /**
      * If the player can see nothing, it turns 180 degrees.
      */
     private void canSeeNothingAction() {
-        getPlayer().turn(180);
-        if (log.isDebugEnabled()) {
-            log.debug("n");
-        }
+        getPlayer().turn(20);
+//        if (log.isDebugEnabled()) {
+//            log.debug("n");
+//        }
     }
 
     /**
@@ -462,9 +534,9 @@ public class Simple implements ControllerPlayer {
     private void canSeeOwnGoalAction() {
         getPlayer().dash(100);
         turnTowardOwnGoal();
-        if (log.isDebugEnabled()) {
-            log.debug("g(" + directionOwnGoal + "," + distanceOwnGoal + ")");
-        }
+//        if (log.isDebugEnabled()) {
+//            log.debug("g(" + directionOwnGoal + "," + distanceOwnGoal + ")");
+//        }
     }
 
     /**
@@ -505,6 +577,10 @@ public class Simple implements ControllerPlayer {
     private int randomKickDirectionValue() {
         return -45 + random.nextInt(90);
     }
+    
+    private void turnTowardOtherGoal(){
+        getPlayer().turn(directionOtherGoal);
+    }
 
     /**
      * Pause the thread.
@@ -514,7 +590,7 @@ public class Simple implements ControllerPlayer {
         try {
             this.wait(ms);
         } catch (InterruptedException ex) {
-            log.warn("Interrupted Exception ", ex);
+//            log.warn("Interrupted Exception ", ex);
         }
     }
 }
