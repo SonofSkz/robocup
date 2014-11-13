@@ -146,7 +146,7 @@ public class Defender implements ControllerPlayer {
                 turnTowardOwnGoal();
             }else{
                 //the goalie moves back towards the goal
-                canSeeOwnGoalAction();
+                canSeeOwnGoalActionGoalie();
                 //the goalie state changes back to the first state of looking for the ball and
                 //watching it when it returns to the goal
                 if(distanceOwnGoal < HOME_DISTANCE) playerState = 0;
@@ -155,13 +155,15 @@ public class Defender implements ControllerPlayer {
     }
     
     private void generalBehaviour(){
+        final int REACTION_DISTANCE = 50;
+        final int HOME_DISTANCE = 20;
         //finds distance between the closest player and the ball
         double distanceClosestToBall = 104e1;
         for(PlayerData p : visibleOwnPlayers)
             if(p.getDistanceTo() - distanceBall < distanceClosestToBall)
                 distanceClosestToBall = p.getDistanceTo() - distanceBall;
         if(distanceClosestToBall > distanceBall) playerState = 1;
-        else
+        else playerState = 2;
         if(!canSeeBall) playerState = 0;
         //the first state is the player trying to find the ball if it cannot see it
         if(playerState == 0){
@@ -179,9 +181,20 @@ public class Defender implements ControllerPlayer {
         }if(playerState == 2){
             //while the ball is in the player's possession (while the player is the closest one to the ball)
             // it dribbles it towards the goal
-            
-        }if(playerState == 3){
             markOtherPlayer();
+            if(distanceOwnGoal >= REACTION_DISTANCE){
+                playerState = 3;
+            }
+        }if(playerState == 3){
+               if(!canSeeOwnGoal){
+                turnTowardOwnGoal();
+            }else{
+                //the goalie moves back towards the goal
+                canSeeOwnGoalAction();
+                //the goalie state changes back to the first state of looking for the ball and
+                //watching it when it returns to the goal
+                if(distanceOwnGoal < HOME_DISTANCE) playerState = 0;
+            }
         }
     }
     
@@ -563,9 +576,16 @@ public class Defender implements ControllerPlayer {
     /**
      * If the player can see its own goal, it goes and stands by it...
      */
-    private void canSeeOwnGoalAction() {
+    private void canSeeOwnGoalActionGoalie() {
         getPlayer().dash(100);
         turnTowardOwnGoal();
+//        if (log.isDebugEnabled()) {
+//            log.debug("g(" + directionOwnGoal + "," + distanceOwnGoal + ")");
+//        }
+    }
+    
+        private void canSeeOwnGoalAction() {
+        getPlayer().dash(100);
 //        if (log.isDebugEnabled()) {
 //            log.debug("g(" + directionOwnGoal + "," + distanceOwnGoal + ")");
 //        }
