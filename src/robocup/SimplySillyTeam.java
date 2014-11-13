@@ -31,7 +31,14 @@ public class SimplySillyTeam extends AbstractTeam {
      */
     @Override
     public ControllerPlayer getNewControllerPlayer(int number) {
-        return new Simple();
+        if (number == 1){
+        return new Simple();    
+        } else if (number == 11 || number == 10 || number == 9 || number == 8){
+        return new Defender();
+        } else {
+            return new Simple();
+        }
+        
     }
 
     /**

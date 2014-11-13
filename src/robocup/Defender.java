@@ -33,7 +33,7 @@ import java.util.Random;
  *
  * @author Atan
  */
-public class Simple implements ControllerPlayer {
+public class Defender implements ControllerPlayer {
     private static int    count         = 0;
 //    private static Logger log           = Logger.getLogger(Simple.class);
     private Random        random        = null;
@@ -63,7 +63,7 @@ public class Simple implements ControllerPlayer {
     /**
      * Constructs a new simple client.
      */
-    public Simple() {
+    public Defender() {
         random = new Random(System.currentTimeMillis() + count);
         visibleOwnPlayers = new ArrayList();
         visibleOtherPlayers = new ArrayList();
@@ -157,6 +157,11 @@ public class Simple implements ControllerPlayer {
     private void generalBehaviour(){
         //finds distance between the closest player and the ball
         double distanceClosestToBall = 104e1;
+        for(PlayerData p : visibleOwnPlayers)
+            if(p.getDistanceTo() - distanceBall < distanceClosestToBall)
+                distanceClosestToBall = p.getDistanceTo() - distanceBall;
+        if(distanceClosestToBall > distanceBall) playerState = 1;
+        else
         if(!canSeeBall) playerState = 0;
         //the first state is the player trying to find the ball if it cannot see it
         if(playerState == 0){
@@ -168,18 +173,15 @@ public class Simple implements ControllerPlayer {
         if(playerState == 1){
             //searches through the entire list to find which player is closest to the ball using
             //an arraylist of PlayerDatas (which are used to record relevant information on the players
-            for(PlayerData p : visibleOwnPlayers)
-                if(p.getDistanceTo() - distanceBall < distanceClosestToBall)
-                    distanceClosestToBall = p.getDistanceTo() - distanceBall;
-            if(distanceClosestToBall > distanceBall) playerState = 2;
+
             //the player switches state if it is not the closest person on his team to the ball
-            else playerState = 3;
+            dribbleTowardOtherGoal();
         }if(playerState == 2){
             //while the ball is in the player's possession (while the player is the closest one to the ball)
             // it dribbles it towards the goal
-            dribbleTowardOtherGoal();
+            
         }if(playerState == 3){
-            getClear();
+            markOtherPlayer();
         }
     }
     
