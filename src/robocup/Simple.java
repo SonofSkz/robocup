@@ -103,11 +103,11 @@ public class Simple implements ControllerPlayer {
         //before the beginning of the game get all players to rotate and 'find' all of the
         //in game components
         if(playMode == PlayMode.BEFORE_KICK_OFF){
-            getPlayer().turn(60);
+            canSeeNothingAction();
         }else{ // continue with normal behaviour
             //goalie behaviour
             if(canSeeNothing){
-                getPlayer().turn(60);
+                
             }else{
                 if(goalie){
                     goalieBehaviour();
@@ -158,19 +158,78 @@ public class Simple implements ControllerPlayer {
         //finds distance between the closest player and the ball
         double distanceClosestToBall = 104e1;
         if(!canSeeBall) playerState = 0;
+        //the first state is the player trying to find the ball if it cannot see it
         if(playerState == 0){
-            if(!canSeeBall) getPlayer().turn(60);
+            if(!canSeeBall) canSeeNothingAction();
+            //switches to the next state if the player can see the ball
             if(canSeeBall) playerState = 1;
-        }if(playerState == 1){
+        }
+        //this state determines whether or not to go after the ball
+        if(playerState == 1){
+            //searches through the entire list to find which player is closest to the ball using
+            //an arraylist of PlayerDatas (which are used to record relevant information on the players
             for(PlayerData p : visibleOwnPlayers)
                 if(p.getDistanceTo() - distanceBall < distanceClosestToBall)
                     distanceClosestToBall = p.getDistanceTo() - distanceBall;
             if(distanceClosestToBall > distanceBall) playerState = 2;
-            else playerState = 0;
+            //the player switches state if it is not the closest person on his team to the ball
+            else playerState = 3;
         }if(playerState == 2){
+            //while the ball is in the player's possession (while the player is the closest one to the ball)
+            // it dribbles it towards the goal
             dribbleTowardOtherGoal();
-        }//if(playerState == 3){
-//            markOtherPlayer();
+        }if(playerState == 3){
+            markOtherPlayer();
+        }
+    }
+    
+    private void dribbleTowardOtherGoal(){
+        turnTowardBall();
+        if(distanceBall < 0.7){
+            if(canSeeOtherGoal){
+                if(distanceOtherGoal < 30) getPlayer().kick(100, directionOtherGoal);
+                else getPlayer().kick(40, directionOtherGoal);
+            }else getPlayer().turn(60);
+        }
+        getPlayer().dash(60);
+    }
+    
+    private void markOtherPlayer(){
+        PlayerData closestEnemy = new PlayerData();
+        closestEnemy.setDistanceTo(104);
+        for(PlayerData x : visibleOtherPlayers){
+            if(x.getDistanceTo() < closestEnemy.getDistanceTo()){
+                closestEnemy = x;
+            }
+        }
+        getPlayer().turn(closestEnemy.getDirectionTo());
+        getPlayer().dash(50);
+    }
+    
+    private void canSeeBallAction() {
+        getPlayer().dash(this.randomDashValueFast());
+        turnTowardBall();
+        if (distanceBall < 0.7 && distanceOtherGoal < 20) {
+            getPlayer().kick(100, directionOtherGoal);
+        } else if (distanceBall < 0.8){
+            getPlayer().kick(20, directionOtherGoal);
+        }
+//        if (log.isDebugEnabled()) {
+//            log.debug("b(" + directionBall + "," + distanceBall + ")");
+//        }
+    }
+    
+    private void canSeeBallActionGoalie() {
+        getPlayer().dash(this.randomDashValueFast());
+        turnTowardBall();
+        
+        if (distanceBall < 0.7 && distanceOtherGoal < 20) {
+            getPlayer().kick(100, directionOtherGoal);
+        } else if (distanceBall < 0.8){
+            getPlayer().kick(20, directionOtherGoal);
+        }
+//        if (log.isDebugEnabled()) {
+//            log.debug("b(" + directionBall + "," + distanceBall + ")");
 //        }
     }
 
@@ -465,47 +524,6 @@ public class Simple implements ControllerPlayer {
      * This is the action performed when the player can see the ball.
      * It involves running at it and kicking it...
      */
-    
-    private void dribbleTowardOtherGoal(){
-        turnTowardBall();
-        if(distanceBall < 0.7){
-            getPlayer().turnNeck(directionOtherGoal);
-            if(distanceOtherGoal < 30) getPlayer().kick(100, directionOtherGoal);
-            else getPlayer().kick(10, directionOtherGoal);
-        }
-        getPlayer().dash(30);
-    }
-    
-    private void markOtherPlayer(){
-        
-    }
-    
-    private void canSeeBallAction() {
-        getPlayer().dash(this.randomDashValueFast());
-        turnTowardBall();
-        if (distanceBall < 0.7 && distanceOtherGoal < 20) {
-            getPlayer().kick(100, directionOtherGoal);
-        } else if (distanceBall < 0.8){
-            getPlayer().kick(20, directionOtherGoal);
-        }
-//        if (log.isDebugEnabled()) {
-//            log.debug("b(" + directionBall + "," + distanceBall + ")");
-//        }
-    }
-    
-    private void canSeeBallActionGoalie() {
-        getPlayer().dash(this.randomDashValueFast());
-        turnTowardBall();
-        
-        if (distanceBall < 0.7 && distanceOtherGoal < 20) {
-            getPlayer().kick(100, directionOtherGoal);
-        } else if (distanceBall < 0.8){
-            getPlayer().kick(20, directionOtherGoal);
-        }
-//        if (log.isDebugEnabled()) {
-//            log.debug("b(" + directionBall + "," + distanceBall + ")");
-//        }
-    }
 
     /**
      * If the player can see anything that is not a ball or a goal, it turns.
@@ -522,7 +540,7 @@ public class Simple implements ControllerPlayer {
      * If the player can see nothing, it turns 180 degrees.
      */
     private void canSeeNothingAction() {
-        getPlayer().turn(20);
+        getPlayer().turn(60);
 //        if (log.isDebugEnabled()) {
 //            log.debug("n");
 //        }
