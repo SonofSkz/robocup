@@ -33,7 +33,7 @@ import java.util.Random;
  *
  * @author Atan
  */
-public class Simple implements ControllerPlayer {
+public class Goalie implements ControllerPlayer {
     private static int    count         = 0;
 //    private static Logger log           = Logger.getLogger(Simple.class);
     private Random        random        = null;
@@ -63,7 +63,7 @@ public class Simple implements ControllerPlayer {
     /**
      * Constructs a new simple client.
      */
-    public Simple() {
+    public Goalie() {
         random = new Random(System.currentTimeMillis() + count);
         visibleOwnPlayers = new ArrayList();
         visibleOtherPlayers = new ArrayList();
@@ -105,40 +105,39 @@ public class Simple implements ControllerPlayer {
         if(playMode == PlayMode.BEFORE_KICK_OFF){
             canSeeNothingAction();
         }else{ // continue with normal behaviour
-            //goalie behaviour
-            generalBehaviour();
-            
+            goalieBehaviour();
         }
     }
     
-    
-    
-    private void generalBehaviour(){
-        //finds distance between the closest player and the ball
-        double distanceClosestToBall = 104e1;
-        if(!canSeeBall) playerState = 0;
-        //the first state is the player trying to find the ball if it cannot see it
+    private void goalieBehaviour(){
+        final int REACTION_DISTANCE = 20;
+        final int HOME_DISTANCE = 5;
+
+        //the first state has the goalie wait in goal but constantly look for the ball
         if(playerState == 0){
-            if(!canSeeBall) canSeeNothingAction();
-            //switches to the next state if the player can see the ball
-            if(canSeeBall) playerState = 1;
+            turnTowardBall();
+            //the goalie state changes when the ball moves to a certain distance from the goalie
+            if(canSeeBall && distanceBall < REACTION_DISTANCE) playerState = 1;
         }
-        //this state determines whether or not to go after the ball
+        //in this state the goalie is actively running towards the ball attempting to intercept it and
+        //kick it away if possible
         if(playerState == 1){
-            //searches through the entire list to find which player is closest to the ball using
-            //an arraylist of PlayerDatas (which are used to record relevant information on the players
-            for(PlayerData p : visibleOwnPlayers)
-                if(p.getDistanceTo() - distanceBall < distanceClosestToBall)
-                    distanceClosestToBall = p.getDistanceTo() - distanceBall;
-            if(distanceClosestToBall > distanceBall) playerState = 2;
-            //the player switches state if it is not the closest person on his team to the ball
-            else playerState = 3;
-        }if(playerState == 2){
-            //while the ball is in the player's possession (while the player is the closest one to the ball)
-            // it dribbles it towards the goal
-            dribbleTowardOtherGoal();
-        }if(playerState == 3){
-            getClear();
+            canSeeBallAction();
+            //the goalie state changes when the ball leaves a certain range
+            if(distanceOwnGoal >= REACTION_DISTANCE) playerState = 2;
+        }
+        //in this state the goalie moves back to the goal
+        if(playerState == 2){
+            //the goalie needs to be able to see his/her own goal to move back to it
+            if(!canSeeOwnGoal){
+                turnTowardOwnGoal();
+            }else{
+                //the goalie moves back towards the goal
+                canSeeOwnGoalAction();
+                //the goalie state changes back to the first state of looking for the ball and
+                //watching it when it returns to the goal
+                if(distanceOwnGoal < HOME_DISTANCE) playerState = 0;
+            }
         }
     }
     
@@ -151,12 +150,6 @@ public class Simple implements ControllerPlayer {
             }else getPlayer().turnNeck(90);
         }
         getPlayer().dash(60);
-    }
-    
-    private void markOtherPlayer(){
-        PlayerData closestEnemy = getClosestEnemy();
-        getPlayer().turn(closestEnemy.getDirectionTo());
-        getPlayer().dash(50);
     }
     
     private void getClear(){
@@ -189,20 +182,6 @@ public class Simple implements ControllerPlayer {
 //            log.debug("b(" + directionBall + "," + distanceBall + ")");
 //        }
     }
-    
-//    private void canSeeBallActionGoalie() {
-//        getPlayer().dash(this.randomDashValueFast());
-//        turnTowardBall();
-//        
-//        if (distanceBall < 0.7 && distanceOtherGoal < 20) {
-//            getPlayer().kick(100, directionOtherGoal);
-//        } else if (distanceBall < 0.8){
-//            getPlayer().kick(20, directionOtherGoal);
-//        }
-////        if (log.isDebugEnabled()) {
-////            log.debug("b(" + directionBall + "," + distanceBall + ")");
-////        }
-//    }
 
     /** {@inheritDoc}
      * @param flag
