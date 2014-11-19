@@ -42,8 +42,6 @@ public class Goalie implements ControllerPlayer {
     private boolean       canSeeBall    = false;
     
     private PlayMode playMode = null;
-    
-    private boolean goalie = false;
     private int playerState = 0;
     private double distanceOtherGoal = 0;
     private boolean canSeeOtherGoal = false;
@@ -91,7 +89,6 @@ public class Goalie implements ControllerPlayer {
         canSeeOwnGoal = false;
         canSeeOtherGoal = false;
         canSeeBall    = false;
-        goalie = getPlayer().getNumber() == 1;
         canSeeNothing = true;
         visibleOwnPlayers.clear();
         visibleOtherPlayers.clear();

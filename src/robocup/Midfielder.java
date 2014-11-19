@@ -28,7 +28,7 @@ import java.util.Random;
 *
 * @author Atan
 */
-public class Defender implements ControllerPlayer {
+public class Midfielder implements ControllerPlayer {
     private static int count = 0;
     // private static Logger log = Logger.getLogger(Simple.class);
     private Random random = null;
@@ -36,7 +36,6 @@ public class Defender implements ControllerPlayer {
     private boolean canSeeNothing = true;
     private boolean canSeeBall = false;
     private PlayMode playMode = null;
-    private boolean goalie = false;
     private int playerState = 0;
     private double distanceOtherGoal = 0;
     private boolean canSeeOtherGoal = false;
@@ -57,7 +56,7 @@ public class Defender implements ControllerPlayer {
     /**
     * Constructs a new simple client.
     */
-    public Defender() {
+    public Midfielder() {
         random = new Random(System.currentTimeMillis() + count);
         visibleOwnPlayers = new ArrayList();
         visibleOtherPlayers = new ArrayList();
@@ -82,7 +81,6 @@ public class Defender implements ControllerPlayer {
         canSeeOwnGoal = false;
         canSeeOtherGoal = false;
         canSeeBall = false;
-        goalie = getPlayer().getNumber() == 1;
         canSeeNothing = true;
         visibleOwnPlayers.clear();
         visibleOtherPlayers.clear();
