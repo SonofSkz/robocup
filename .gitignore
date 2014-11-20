@@ -14,6 +14,6 @@ rcssmonitor-14.1.0-win
 rcssserver-15.0.0-win
 .classpath
 .project
-/build/
-/dist/
-/nbproject/
+build/
+dist/
+nbproject/
