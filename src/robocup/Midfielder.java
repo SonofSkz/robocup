@@ -52,7 +52,8 @@ public class Midfielder implements ControllerPlayer {
     private ActionsPlayer player;
     private final int REACTION_DISTANCE = 20;
     private final int HOME_DISTANCE = 50;
-    private final int HOME_RANGE = 30;
+    private final int HOME_MAX = 60;
+    private final int HOME_MIN = 40;
     /**
     * Constructs a new simple client.
     */
@@ -104,20 +105,12 @@ public class Midfielder implements ControllerPlayer {
             if(distanceBall <= REACTION_DISTANCE) playerState = 1;
         }
         if(playerState == 1){
-         //   double distanceBallOtherGoal = 0;
-//            if(canSeeOtherGoal){
-//                double dBallSquared = distanceBall*distanceBall;
-//                double dGoalSquared = distanceOtherGoal*distanceOtherGoal;
-//                double bcCosAx2 = 2*distanceBall*distanceOtherGoal*Math.cos(directionOtherGoal);
-//                distanceBallOtherGoal = Math.sqrt(dBallSquared + dGoalSquared - bcCosAx2);
-//            }
-            
-            if(HOME_DISTANCE >= distanceOwnGoal){                
+            if(distanceOwnGoal < HOME_DISTANCE){                
                 getClear();
             }else playerState = 2;
         }
         if(playerState == 2){
-            if(distanceOwnGoal > HOME_RANGE){
+            if(distanceOwnGoal > HOME_DISTANCE && distanceOwnGoal < HOME_DISTANCE){
                 returnHome();
             }else playerState = 0;
         }

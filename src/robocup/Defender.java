@@ -50,8 +50,8 @@ public class Defender implements ControllerPlayer {
     private double directionCentre;
     private boolean canSeeCentre;
     private ActionsPlayer player;
-    private final int REACTION_DISTANCE = 20;
-    private final int HOME_DISTANCE = 30;
+    private final int REACTION_DISTANCE = 10;
+    private final int HOME_DISTANCE = 20;
     /**
     * Constructs a new simple client.
     */
@@ -103,12 +103,12 @@ public class Defender implements ControllerPlayer {
             if(distanceBall <= REACTION_DISTANCE) playerState = 1;
         }
         if(playerState == 1){
-            if(HOME_DISTANCE >= distanceOwnGoal){                
+            if(distanceBall < HOME_DISTANCE){                
                 getClear();
             }else playerState = 2;
         }
         if(playerState == 2){
-            if(distanceOwnGoal > HOME_DISTANCE && distanceOwnGoal < HOME_DISTANCE){
+            if(distanceOwnGoal > HOME_DISTANCE){
                 returnHome();
             }else playerState = 0;
         }
@@ -120,7 +120,7 @@ public class Defender implements ControllerPlayer {
             if(canSeeOtherGoal){
                 if(distanceOtherGoal < 30) getPlayer().kick(100, directionOtherGoal);
                 else getPlayer().kick(40, directionOtherGoal);
-            }else getPlayer().turnNeck(90);
+            }else{ getPlayer().turnNeck(90); getPlayer().turnNeck(-90); }
         }
         getPlayer().dash(60);
     }
