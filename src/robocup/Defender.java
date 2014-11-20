@@ -36,8 +36,7 @@ public class Defender implements ControllerPlayer {
     private boolean canSeeNothing = true;
     private boolean canSeeBall = false;
     private PlayMode playMode = null;
-    private boolean goalie = false;
-    private int playerState = 0;
+    private int playerState = 2;
     private double distanceOtherGoal = 0;
     private boolean canSeeOtherGoal = false;
     private double directionOtherGoal = 0;
@@ -53,7 +52,6 @@ public class Defender implements ControllerPlayer {
     private ActionsPlayer player;
     private final int REACTION_DISTANCE = 20;
     private final int HOME_DISTANCE = 30;
-    private final int HOME_RANGE = 15;
     /**
     * Constructs a new simple client.
     */
@@ -82,7 +80,6 @@ public class Defender implements ControllerPlayer {
         canSeeOwnGoal = false;
         canSeeOtherGoal = false;
         canSeeBall = false;
-        goalie = getPlayer().getNumber() == 1;
         canSeeNothing = true;
         visibleOwnPlayers.clear();
         visibleOtherPlayers.clear();
@@ -106,19 +103,12 @@ public class Defender implements ControllerPlayer {
             if(distanceBall <= REACTION_DISTANCE) playerState = 1;
         }
         if(playerState == 1){
-            double distanceBallOtherGoal = 0;
-            if(canSeeOtherGoal){
-                double dBallSquared = distanceBall*distanceBall;
-                double dGoalSquared = distanceOtherGoal*distanceOtherGoal;
-                double bcCosAx2 = 2*distanceBall*distanceOtherGoal*Math.cos(directionOtherGoal);
-                distanceBallOtherGoal = Math.sqrt(dBallSquared + dGoalSquared - bcCosAx2);
-            }
-            if(HOME_DISTANCE > distanceBallOtherGoal){
+            if(HOME_DISTANCE >= distanceOwnGoal){                
                 getClear();
             }else playerState = 2;
         }
         if(playerState == 2){
-            if(distanceOwnGoal + HOME_RANGE/2 < HOME_DISTANCE){
+            if(distanceOwnGoal > HOME_DISTANCE && distanceOwnGoal < HOME_DISTANCE){
                 returnHome();
             }else playerState = 0;
         }
@@ -148,7 +138,7 @@ public class Defender implements ControllerPlayer {
     
     private void getClear(){
         PlayerData closestEnemy = getClosestEnemy();
-        if(closestEnemy.getDistanceTo() < 10){
+        if(closestEnemy.getDistanceTo() < 10 && distanceBall < 0.7){
             getPlayer().turn(closestEnemy.getDirectionTo() + 90);
             getPlayer().kick(50, 0);
         }else dribbleTowardOtherGoal();
