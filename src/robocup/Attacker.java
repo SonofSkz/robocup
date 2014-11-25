@@ -18,15 +18,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 /**
-* A simple controller. It implements the following simple behaviour. If the
-* client sees nothing (it might be out of the field) it turns 180 degree. If
-* the client sees the own goal and the distance is less than 40 and greater
-* than 10 it turns to his own goal and dashes. If it cannot see the own goal
-* but can see the ball it turns to the ball and dashes. If it sees anything but
-* not the ball or the own goals it dashes a little bit and turns a fixed amount
-* of degree to the right.
+* A simple controller. It implements the following simple behaviour.
 *
-* @author Atan
+* @author Max
 */
 public class Attacker implements ControllerPlayer {
     private static int count = 0;
@@ -80,7 +74,6 @@ public class Attacker implements ControllerPlayer {
         canSeeOwnGoal = false;
         canSeeOtherGoal = false;
         canSeeBall = false;
-        goalie = getPlayer().getNumber() == 1;
         canSeeNothing = true;
         visibleOwnPlayers.clear();
         visibleOtherPlayers.clear();
@@ -147,17 +140,17 @@ public class Attacker implements ControllerPlayer {
         turnTowardBall();
         if(distanceBall < 0.7){
             if(canSeeOtherGoal){
-                if(distanceOtherGoal < 30) getPlayer().kick(100, directionOtherGoal);
-                else getPlayer().kick(40, directionOtherGoal+5);
+                if(distanceOtherGoal < 30) {getPlayer().kick(100, directionOtherGoal);
+                }
+                else{
+                    getPlayer().kick(40, directionOtherGoal+5);
+                }
             }else getPlayer().turnNeck(90);
         }
         getPlayer().dash(60);
     }
         
-    private void returnHome(){
-        turnTowardOwnGoal();
-        getPlayer().dash(randomDashValueFast());
-    }
+
 
     private void markOtherPlayer(){
         PlayerData closestEnemy = getClosestEnemy();
