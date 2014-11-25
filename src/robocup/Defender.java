@@ -131,28 +131,28 @@ public class Defender implements ControllerPlayer {
     }
 
     private void markOtherPlayer(){
-        PlayerData closestEnemy = getClosestEnemy();
+        PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
         getPlayer().turn(closestEnemy.getDirectionTo());
         getPlayer().dash(50);
     }
     
     private void getClear(){
-        PlayerData closestEnemy = getClosestEnemy();
+        PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
         if(closestEnemy.getDistanceTo() < 10 && distanceBall < 0.7){
             getPlayer().turn(closestEnemy.getDirectionTo() + 90);
             getPlayer().kick(50, 0);
         }else dribbleTowardOtherGoal();
     }
     
-    private PlayerData getClosestEnemy(){
-        PlayerData closestEnemy = new PlayerData();
-        closestEnemy.setDistanceTo(104);
-        for(PlayerData x : visibleOtherPlayers){
-            if(x.getDistanceTo() < closestEnemy.getDistanceTo()){
-                closestEnemy = x;
+    private PlayerData getClosestPlayer(ArrayList<PlayerData> players){
+        PlayerData closestPlayer = new PlayerData();
+        closestPlayer.setDistanceTo(104);
+        for(PlayerData x : players){
+            if(x.getDistanceTo() < closestPlayer.getDistanceTo()){
+                closestPlayer = x;
             }
         }
-        return closestEnemy;
+        return closestPlayer;
     }
     
     /**

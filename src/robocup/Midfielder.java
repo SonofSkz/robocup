@@ -32,6 +32,8 @@ public class Midfielder implements ControllerPlayer {
     private static int count = 0;
     // private static Logger log = Logger.getLogger(Simple.class);
     private Random random = null;
+    
+    private final double randPos;
     private boolean canSeeOwnGoal = false;
     private boolean canSeeNothing = true;
     private boolean canSeeBall = false;
@@ -51,9 +53,9 @@ public class Midfielder implements ControllerPlayer {
     private boolean canSeeCentre;
     private ActionsPlayer player;
     private final int REACTION_DISTANCE = 20;
-    private final int HOME_DISTANCE = 50;
-    private final int HOME_MAX = 60;
-    private final int HOME_MIN = 40;
+    private final int HOME_DISTANCE;
+    private final int HOME_MAX = 70;
+    private final int HOME_MIN = 30;
     /**
     * Constructs a new simple client.
     */
@@ -61,7 +63,9 @@ public class Midfielder implements ControllerPlayer {
         random = new Random(System.currentTimeMillis() + count);
         visibleOwnPlayers = new ArrayList();
         visibleOtherPlayers = new ArrayList();
-        // distanceBall = 50;
+        Random gen = new Random();
+        randPos = gen.nextInt(90) - 45;
+        HOME_DISTANCE = gen.nextInt(HOME_MAX - HOME_MIN) + HOME_MIN;
         count++;
     }
     /** {@inheritDoc}
@@ -94,7 +98,7 @@ public class Midfielder implements ControllerPlayer {
         if(playMode == PlayMode.BEFORE_KICK_OFF){
             canSeeNothingAction();
         }else{ // continue with normal behaviour
-            //goalie behaviour
+            //midfielder behaviour
             behaviour();
         }
     }
@@ -105,12 +109,12 @@ public class Midfielder implements ControllerPlayer {
             if(distanceBall <= REACTION_DISTANCE) playerState = 1;
         }
         if(playerState == 1){
-            if(distanceOwnGoal < HOME_DISTANCE){                
-                getClear();
+            if(distanceBall < HOME_DISTANCE + REACTION_DISTANCE && distanceBall > HOME_DISTANCE - REACTION_DISTANCE){                
+                passOn();
             }else playerState = 2;
         }
         if(playerState == 2){
-            if(distanceOwnGoal > HOME_DISTANCE && distanceOwnGoal < HOME_DISTANCE){
+            if(distanceOwnGoal >= HOME_DISTANCE + 3 || distanceOwnGoal <= HOME_DISTANCE - 3){
                 returnHome();
             }else playerState = 0;
         }
@@ -133,28 +137,28 @@ public class Midfielder implements ControllerPlayer {
     }
 
     private void markOtherPlayer(){
-        PlayerData closestEnemy = getClosestEnemy();
+        PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
         getPlayer().turn(closestEnemy.getDirectionTo());
         getPlayer().dash(50);
     }
     
-    private void getClear(){
-        PlayerData closestEnemy = getClosestEnemy();
+    private void passOn(){
+        PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
         if(closestEnemy.getDistanceTo() < 10 && distanceBall < 0.7){
             getPlayer().turn(closestEnemy.getDirectionTo() + 90);
             getPlayer().kick(50, 0);
         }else dribbleTowardOtherGoal();
     }
     
-    private PlayerData getClosestEnemy(){
-        PlayerData closestEnemy = new PlayerData();
-        closestEnemy.setDistanceTo(104);
-        for(PlayerData x : visibleOtherPlayers){
-            if(x.getDistanceTo() < closestEnemy.getDistanceTo()){
-                closestEnemy = x;
+    private PlayerData getClosestPlayer(ArrayList<PlayerData> players){
+        PlayerData closestPlayer = new PlayerData();
+        closestPlayer.setDistanceTo(104);
+        for(PlayerData x : players){
+            if(x.getDistanceTo() < closestPlayer.getDistanceTo()){
+                closestPlayer = x;
             }
         }
-        return closestEnemy;
+        return closestPlayer;
     }
     
     /**
@@ -193,7 +197,7 @@ public class Midfielder implements ControllerPlayer {
      */
     private void turnTowardOwnGoal() {
         if(!canSeeOwnGoal) canSeeNothingAction();
-        else getPlayer().turn(directionOwnGoal);
+        else getPlayer().turn(directionOwnGoal + randPos);
     }
 
     /**
