@@ -50,8 +50,8 @@ public class Defender implements ControllerPlayer {
     private double directionCentre;
     private boolean canSeeCentre;
     private ActionsPlayer player;
-    private final int REACTION_DISTANCE = 20;
-    private final int HOME_DISTANCE = 30;
+    private final int REACTION_DISTANCE = 10;
+    private final int HOME_DISTANCE = 20;
     /**
     * Constructs a new simple client.
     */
@@ -103,12 +103,12 @@ public class Defender implements ControllerPlayer {
             if(distanceBall <= REACTION_DISTANCE) playerState = 1;
         }
         if(playerState == 1){
-            if(HOME_DISTANCE >= distanceOwnGoal){                
+            if(distanceBall < HOME_DISTANCE){                
                 getClear();
             }else playerState = 2;
         }
         if(playerState == 2){
-            if(distanceOwnGoal > HOME_DISTANCE && distanceOwnGoal < HOME_DISTANCE){
+            if(distanceOwnGoal > HOME_DISTANCE){
                 returnHome();
             }else playerState = 0;
         }
@@ -120,7 +120,7 @@ public class Defender implements ControllerPlayer {
             if(canSeeOtherGoal){
                 if(distanceOtherGoal < 30) getPlayer().kick(100, directionOtherGoal);
                 else getPlayer().kick(40, directionOtherGoal);
-            }else getPlayer().turnNeck(90);
+            }else{ getPlayer().turnNeck(90); getPlayer().turnNeck(-90); }
         }
         getPlayer().dash(60);
     }
@@ -131,28 +131,28 @@ public class Defender implements ControllerPlayer {
     }
 
     private void markOtherPlayer(){
-        PlayerData closestEnemy = getClosestEnemy();
+        PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
         getPlayer().turn(closestEnemy.getDirectionTo());
         getPlayer().dash(50);
     }
     
     private void getClear(){
-        PlayerData closestEnemy = getClosestEnemy();
+        PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
         if(closestEnemy.getDistanceTo() < 10 && distanceBall < 0.7){
             getPlayer().turn(closestEnemy.getDirectionTo() + 90);
             getPlayer().kick(50, 0);
         }else dribbleTowardOtherGoal();
     }
     
-    private PlayerData getClosestEnemy(){
-        PlayerData closestEnemy = new PlayerData();
-        closestEnemy.setDistanceTo(104);
-        for(PlayerData x : visibleOtherPlayers){
-            if(x.getDistanceTo() < closestEnemy.getDistanceTo()){
-                closestEnemy = x;
+    private PlayerData getClosestPlayer(ArrayList<PlayerData> players){
+        PlayerData closestPlayer = new PlayerData();
+        closestPlayer.setDistanceTo(104);
+        for(PlayerData x : players){
+            if(x.getDistanceTo() < closestPlayer.getDistanceTo()){
+                closestPlayer = x;
             }
         }
-        return closestEnemy;
+        return closestPlayer;
     }
     
     /**

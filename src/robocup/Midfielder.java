@@ -32,6 +32,8 @@ public class Midfielder implements ControllerPlayer {
     private static int count = 0;
     // private static Logger log = Logger.getLogger(Simple.class);
     private Random random = null;
+    
+    private final double randPos;
     private boolean canSeeOwnGoal = false;
     private boolean canSeeNothing = true;
     private boolean canSeeBall = false;
@@ -51,8 +53,9 @@ public class Midfielder implements ControllerPlayer {
     private boolean canSeeCentre;
     private ActionsPlayer player;
     private final int REACTION_DISTANCE = 20;
-    private final int HOME_DISTANCE = 50;
-    private final int HOME_RANGE = 30;
+    private final int HOME_DISTANCE;
+    private final int HOME_MAX = 70;
+    private final int HOME_MIN = 30;
     /**
     * Constructs a new simple client.
     */
@@ -60,7 +63,9 @@ public class Midfielder implements ControllerPlayer {
         random = new Random(System.currentTimeMillis() + count);
         visibleOwnPlayers = new ArrayList();
         visibleOtherPlayers = new ArrayList();
-        // distanceBall = 50;
+        Random gen = new Random();
+        randPos = gen.nextInt(90) - 45;
+        HOME_DISTANCE = gen.nextInt(HOME_MAX - HOME_MIN) + HOME_MIN;
         count++;
     }
     /** {@inheritDoc}
@@ -93,7 +98,7 @@ public class Midfielder implements ControllerPlayer {
         if(playMode == PlayMode.BEFORE_KICK_OFF){
             canSeeNothingAction();
         }else{ // continue with normal behaviour
-            //goalie behaviour
+            //midfielder behaviour
             behaviour();
         }
     }
@@ -104,20 +109,12 @@ public class Midfielder implements ControllerPlayer {
             if(distanceBall <= REACTION_DISTANCE) playerState = 1;
         }
         if(playerState == 1){
-         //   double distanceBallOtherGoal = 0;
-//            if(canSeeOtherGoal){
-//                double dBallSquared = distanceBall*distanceBall;
-//                double dGoalSquared = distanceOtherGoal*distanceOtherGoal;
-//                double bcCosAx2 = 2*distanceBall*distanceOtherGoal*Math.cos(directionOtherGoal);
-//                distanceBallOtherGoal = Math.sqrt(dBallSquared + dGoalSquared - bcCosAx2);
-//            }
-            
-            if(HOME_DISTANCE >= distanceOwnGoal){                
-                getClear();
+            if(distanceBall < HOME_DISTANCE + REACTION_DISTANCE && distanceBall > HOME_DISTANCE - REACTION_DISTANCE){                
+                passOn();
             }else playerState = 2;
         }
         if(playerState == 2){
-            if(distanceOwnGoal > HOME_RANGE){
+            if(distanceOwnGoal >= HOME_DISTANCE + 3 || distanceOwnGoal <= HOME_DISTANCE - 3){
                 returnHome();
             }else playerState = 0;
         }
@@ -140,28 +137,37 @@ public class Midfielder implements ControllerPlayer {
     }
 
     private void markOtherPlayer(){
-        PlayerData closestEnemy = getClosestEnemy();
+        PlayerData closestEnemy = getNearFarPlayers(visibleOtherPlayers).getLeft();
         getPlayer().turn(closestEnemy.getDirectionTo());
         getPlayer().dash(50);
     }
     
-    private void getClear(){
-        PlayerData closestEnemy = getClosestEnemy();
-        if(closestEnemy.getDistanceTo() < 10 && distanceBall < 0.7){
-            getPlayer().turn(closestEnemy.getDirectionTo() + 90);
-            getPlayer().kick(50, 0);
-        }else dribbleTowardOtherGoal();
+    private void passOn(){
+        ArrayList<PlayerData> closestEnemies = new ArrayList();
+        for(PlayerData e : visibleOtherPlayers){
+            if(e.getDistanceTo() < 10) closestEnemies.add(e);
+        }
+        if(closestEnemies.size() >= 4) getPlayer().kick(70, getNearFarPlayers(visibleOwnPlayers).getRight().getDirectionTo());
+        else getPlayer().kick(30, getNearFarPlayers(visibleOwnPlayers).getLeft().getDirectionTo());
     }
     
-    private PlayerData getClosestEnemy(){
-        PlayerData closestEnemy = new PlayerData();
-        closestEnemy.setDistanceTo(104);
-        for(PlayerData x : visibleOtherPlayers){
-            if(x.getDistanceTo() < closestEnemy.getDistanceTo()){
-                closestEnemy = x;
+    private Pair<PlayerData, PlayerData> getNearFarPlayers(ArrayList<PlayerData> players){
+        PlayerData closestPlayer = new PlayerData();
+        PlayerData furthestPlayer = new PlayerData();
+        closestPlayer.setDistanceTo(104);
+        furthestPlayer.setDistanceTo(0);
+        for(PlayerData x : players){
+            if(x.getDistanceTo() < closestPlayer.getDistanceTo()){
+                closestPlayer = x;
+            }
+            if(x.getDistanceTo() > furthestPlayer.getDistanceTo()){
+                furthestPlayer = x;
             }
         }
-        return closestEnemy;
+        Pair<PlayerData, PlayerData> p = new Pair();
+        p.setLeft(closestPlayer);
+        p.setRight(furthestPlayer);
+        return p;
     }
     
     /**
@@ -200,7 +206,7 @@ public class Midfielder implements ControllerPlayer {
      */
     private void turnTowardOwnGoal() {
         if(!canSeeOwnGoal) canSeeNothingAction();
-        else getPlayer().turn(directionOwnGoal);
+        else getPlayer().turn(directionOwnGoal + randPos);
     }
 
     /**
