@@ -137,28 +137,37 @@ public class Midfielder implements ControllerPlayer {
     }
 
     private void markOtherPlayer(){
-        PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
+        PlayerData closestEnemy = getNearFarPlayers(visibleOtherPlayers).getLeft();
         getPlayer().turn(closestEnemy.getDirectionTo());
         getPlayer().dash(50);
     }
     
     private void passOn(){
-        PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
-        if(closestEnemy.getDistanceTo() < 10 && distanceBall < 0.7){
-            getPlayer().turn(closestEnemy.getDirectionTo() + 90);
-            getPlayer().kick(50, 0);
-        }else dribbleTowardOtherGoal();
+        ArrayList<PlayerData> closestEnemies = new ArrayList();
+        for(PlayerData e : visibleOtherPlayers){
+            if(e.getDistanceTo() < 10) closestEnemies.add(e);
+        }
+        if(closestEnemies.size() >= 4) getPlayer().kick(70, getNearFarPlayers(visibleOwnPlayers).getRight().getDirectionTo());
+        else getPlayer().kick(30, getNearFarPlayers(visibleOwnPlayers).getLeft().getDirectionTo());
     }
     
-    private PlayerData getClosestPlayer(ArrayList<PlayerData> players){
+    private Pair<PlayerData, PlayerData> getNearFarPlayers(ArrayList<PlayerData> players){
         PlayerData closestPlayer = new PlayerData();
+        PlayerData furthestPlayer = new PlayerData();
         closestPlayer.setDistanceTo(104);
+        furthestPlayer.setDistanceTo(0);
         for(PlayerData x : players){
             if(x.getDistanceTo() < closestPlayer.getDistanceTo()){
                 closestPlayer = x;
             }
+            if(x.getDistanceTo() > furthestPlayer.getDistanceTo()){
+                furthestPlayer = x;
+            }
         }
-        return closestPlayer;
+        Pair<PlayerData, PlayerData> p = new Pair();
+        p.setLeft(closestPlayer);
+        p.setRight(furthestPlayer);
+        return p;
     }
     
     /**
