@@ -21,7 +21,7 @@ public class Simple1Run {
         BasicConfigurator.configure();
         AbstractTeam team = null;
         if (args.length == 0) {
-            team = new SimplySillyTeam("Kamarao", 6000, "localhost", true);
+            team = new SimplySillyTeam("Rated_M", 6000, "localhost", true);
         } else {
             Integer val      = new Integer(args[0]);
             int     port     = val.intValue();

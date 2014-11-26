@@ -115,7 +115,7 @@
 //    
 //    private void generalBehaviour(){
 //        //finds distance between the closest player and the ball
-//        double distanceClosestToBall = 104e1;
+//        double distanceClosestToBall = 104;
 //        if(!canSeeBall) playerState = 0;
 //        //the first state is the player trying to find the ball if it cannot see it
 //        if(playerState == 0){

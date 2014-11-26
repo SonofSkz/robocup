@@ -54,8 +54,8 @@ public class Midfielder implements ControllerPlayer {
     private ActionsPlayer player;
     private final int REACTION_DISTANCE = 20;
     private final int HOME_DISTANCE;
-    private final int HOME_MAX = 70;
-    private final int HOME_MIN = 30;
+    private final int HOME_MAX = 55;
+    private final int HOME_MIN = 45;
     /**
     * Constructs a new simple client.
     */
@@ -104,29 +104,25 @@ public class Midfielder implements ControllerPlayer {
     }
 
     private void behaviour(){
+        System.out.println(getPlayer().getNumber());
         if(playerState == 0){
             turnTowardBall();
             if(distanceBall <= REACTION_DISTANCE) playerState = 1;
         }
-        if(playerState == 1){
-            if(distanceBall < HOME_DISTANCE + REACTION_DISTANCE && distanceBall > HOME_DISTANCE - REACTION_DISTANCE){                
-                passOn();
-            }else playerState = 2;
+        if(playerState == 1){             
+            dribbleTowardOtherGoal();
+            if(distanceOwnGoal > HOME_DISTANCE + REACTION_DISTANCE) playerState = 2;
         }
         if(playerState == 2){
-            if(distanceOwnGoal >= HOME_DISTANCE + 3 || distanceOwnGoal <= HOME_DISTANCE - 3){
-                returnHome();
-            }else playerState = 0;
+            returnHome();
+            if(distanceOwnGoal <= HOME_DISTANCE) playerState = 0;
         }
     }
     
     private void dribbleTowardOtherGoal(){
         turnTowardBall();
         if(distanceBall < 0.7){
-            if(canSeeOtherGoal){
-                if(distanceOtherGoal < 30) getPlayer().kick(100, directionOtherGoal);
-                else getPlayer().kick(40, directionOtherGoal);
-            }else getPlayer().turnNeck(90);
+            passOn();
         }
         getPlayer().dash(60);
     }
@@ -148,6 +144,7 @@ public class Midfielder implements ControllerPlayer {
             if(e.getDistanceTo() < 10) closestEnemies.add(e);
         }
         if(closestEnemies.size() >= 4) getPlayer().kick(70, getNearFarPlayers(visibleOwnPlayers).getRight().getDirectionTo());
+        else if(closestEnemies.isEmpty()) getPlayer().kick(100, directionOtherGoal);
         else getPlayer().kick(30, getNearFarPlayers(visibleOwnPlayers).getLeft().getDirectionTo());
     }
     

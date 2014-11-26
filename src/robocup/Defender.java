@@ -91,6 +91,8 @@ public class Defender implements ControllerPlayer {
         //in game components
         if(playMode == PlayMode.BEFORE_KICK_OFF){
             canSeeNothingAction();
+        }else if(playMode == PlayMode.CORNER_KICK_OWN || playMode == PlayMode.KICK_OFF_OTHER){
+            markOtherPlayer();
         }else{ // continue with normal behaviour
             //goalie behaviour
             behaviour();
@@ -102,15 +104,13 @@ public class Defender implements ControllerPlayer {
             turnTowardBall();
             if(distanceBall <= REACTION_DISTANCE) playerState = 1;
         }
-        if(playerState == 1){
-            if(distanceBall < HOME_DISTANCE){                
-                getClear();
-            }else playerState = 2;
+        if(playerState == 1){                
+            getClear();
+            if(distanceOwnGoal >= HOME_DISTANCE + REACTION_DISTANCE) playerState = 2;
         }
         if(playerState == 2){
-            if(distanceOwnGoal > HOME_DISTANCE){
-                returnHome();
-            }else playerState = 0;
+            returnHome();
+            if(distanceOwnGoal <= HOME_DISTANCE) playerState = 0;
         }
     }
     

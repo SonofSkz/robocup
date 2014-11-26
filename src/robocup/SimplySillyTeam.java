@@ -31,16 +31,17 @@ public class SimplySillyTeam extends AbstractTeam {
      */
     @Override
     public ControllerPlayer getNewControllerPlayer(int number) {
-        if (number == 1){
-            return new Goalie();    
-        } else if (number == 11 || number == 10 || number == 9 || number == 8){
-            return new Defender();
-        } else if (number == 2 || number == 3){
-            return new Attacker();
-        } else {
-            return new Midfielder();
+        ControllerPlayer cntrp = new Defender();
+        if (number == 0){
+            cntrp = new Goalie();    
+        } else if (number == 10 || number == 9 || number == 8 || number == 7){
+            cntrp = new Defender();
+        } else if (number == 1 || number == 2){
+            cntrp = new Attacker();
+        } else if (number == 3 || number == 4 || number == 5 || number == 6){
+            cntrp = new Midfielder();
         }
-        
+        return cntrp;
     }
 
     /**
