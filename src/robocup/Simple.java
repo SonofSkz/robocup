@@ -30,6 +30,14 @@ Continuous:
 Partially Known Environment:
     Every player knows the rules of the game, but unless you constantly tell the player the distance
     between itself and things it hasn't seen for a while, it won't know
+
+Agent Type: Simple Reflex Agent
+Explanation:
+
+The agent has no recollection of the percept history.
+The agent reacts to the current state of the environment regardless of what ever happened
+The agent works towards a goal and has different rules for different scenarios but it
+cnnot be called a goal-based agent because it have a percept history
 */
 
 //package robocup;
