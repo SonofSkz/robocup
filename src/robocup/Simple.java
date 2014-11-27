@@ -35,9 +35,9 @@ Agent Type: Simple Reflex Agent
 Explanation:
 
 The agent has no recollection of the percept history.
-The agent reacts to the current state of the environment regardless of what ever happened
+The agent reacts to the current state of the environment regardless of what ever happened before.
 The agent works towards a goal and has different rules for different scenarios but it
-cnnot be called a goal-based agent because it have a percept history
+cannot be called a goal-based agent because it doesn't have a percept history.
 */
 
 //package robocup;
