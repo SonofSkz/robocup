@@ -10,7 +10,7 @@ import org.apache.log4j.BasicConfigurator;
  *
  * @author Atan
  */
-public class Simple1Run {
+public class RatedM {
 
     /**
      * Start up team Simple1

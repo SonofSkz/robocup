@@ -36,12 +36,12 @@ public class Defender implements ControllerPlayer {
     private boolean canSeeNothing = true;
     private boolean canSeeBall = false;
     private PlayMode playMode = null;
-    private int playerState = 2;
+    private int playerState = 2; // the state machine integer
     private double distanceOtherGoal = 0;
     private boolean canSeeOtherGoal = false;
     private double directionOtherGoal = 0;
-    private final ArrayList<PlayerData> visibleOwnPlayers;
-    private final ArrayList<PlayerData> visibleOtherPlayers;
+    private final ArrayList<PlayerData> visibleOwnPlayers; // an arrayList of all the visible players on your team
+    private final ArrayList<PlayerData> visibleOtherPlayers; // an arrayList of all the visible players on enemy team
     private double directionBall;
     private double directionOwnGoal;
     private double distanceBall;
@@ -50,8 +50,9 @@ public class Defender implements ControllerPlayer {
     private double directionCentre;
     private boolean canSeeCentre;
     private ActionsPlayer player;
-    private final int REACTION_DISTANCE = 10;
-    private final int HOME_DISTANCE = 20;
+    private final int REACTION_DISTANCE = 10; // the distance ]
+    private final int HOME_DISTANCE = 20; // similar to the reaction distance behaviour of the goalie, this variable keeps tr-
+                                          // ack of where this player needs to be in his 0 state
     /**
     * Constructs a new simple client.
     */
@@ -92,45 +93,49 @@ public class Defender implements ControllerPlayer {
         if(playMode == PlayMode.BEFORE_KICK_OFF){
             canSeeNothingAction();
         }else if(playMode == PlayMode.CORNER_KICK_OWN || playMode == PlayMode.KICK_OFF_OTHER){
-            markOtherPlayer();
+            markOtherPlayer(); // move close to another player to help intercept the ball when play continues
         }else{ // continue with normal behaviour
-            //goalie behaviour
             behaviour();
         }
     }
 
     private void behaviour(){
         if(playerState == 0){
-            turnTowardBall();
-            if(distanceBall <= REACTION_DISTANCE) playerState = 1;
+            turnTowardBall(); // the first state is about the player standing in place looking for the ball
+            if(distanceBall <= REACTION_DISTANCE) playerState = 1; // when the ball comes into range, change state
         }
         if(playerState == 1){                
-            getClear();
-            if(distanceOwnGoal >= HOME_DISTANCE + REACTION_DISTANCE) playerState = 2;
+            getClear(); // kick the ball away from the momentum of  the enemy player coming towards it
+            if(distanceOwnGoal >= HOME_DISTANCE + REACTION_DISTANCE) playerState = 2; // when the player leaves a certain range, change state
         }
         if(playerState == 2){
-            returnHome();
-            if(distanceOwnGoal <= HOME_DISTANCE) playerState = 0;
+            returnHome(); // return the player to the range it came from
+            if(distanceOwnGoal <= HOME_DISTANCE) playerState = 0; // when the player returns home, returns to the default state
         }
     }
     
     private void dribbleTowardOtherGoal(){
+        //turns towards the goal
         turnTowardBall();
         if(distanceBall < 0.7){
             if(canSeeOtherGoal){
-                if(distanceOtherGoal < 30) getPlayer().kick(100, directionOtherGoal);
-                else getPlayer().kick(40, directionOtherGoal);
-            }else{ getPlayer().turnNeck(90); getPlayer().turnNeck(-90); }
+                //the player kicks the ball towards the goal but relatively lightly so that it doesn't take lokg for it to get
+                //to the ball again
+                getPlayer().kick(40, directionOtherGoal);
+            }else{ getPlayer().turnNeck(90); getPlayer().turnNeck(-90); } // turn neck to keep track of whats going on
         }
+        //dashes after the ball
         getPlayer().dash(60);
     }
     
     private void returnHome(){
+        //basic code to get the player to return to the required area (go back towards the own goal)
         turnTowardOwnGoal();
         getPlayer().dash(randomDashValueFast());
     }
 
     private void markOtherPlayer(){
+        //get the closest enemy player and go towards it
         PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
         getPlayer().turn(closestEnemy.getDirectionTo());
         getPlayer().dash(50);
@@ -139,11 +144,15 @@ public class Defender implements ControllerPlayer {
     private void getClear(){
         PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
         if(closestEnemy.getDistanceTo() < 10 && distanceBall < 0.7){
+            //if there is an enemy player that is close to the player, the player clears the ball away in a direction
+            //normal to the current facing direction (I assume)
             getPlayer().turn(closestEnemy.getDirectionTo() + 90);
             getPlayer().kick(50, 0);
+            //moves the ball further down-pitch if there are no other enemies near
         }else dribbleTowardOtherGoal();
     }
     
+    //a method that returns the PlayerData of the closest player on wither team
     private PlayerData getClosestPlayer(ArrayList<PlayerData> players){
         PlayerData closestPlayer = new PlayerData();
         closestPlayer.setDistanceTo(104);
@@ -156,7 +165,7 @@ public class Defender implements ControllerPlayer {
     }
     
     /**
-     * If the player can see nothing, it turns 180 degrees.
+     * If the player can see nothing, it turns 90 degrees.
      */
     private void canSeeNothingAction() {
         getPlayer().turn(90);
@@ -171,16 +180,10 @@ public class Defender implements ControllerPlayer {
     }
 
     /**
-     * Randomly choose a slow dash value.
-     * @return
-     */
-    private int randomDashValueSlow() {
-        return -10 + random.nextInt(50);
-    }
-
-    /**
      * Turn towards the ball.
      */
+    
+    //if the player cannot see the ball turn towards it else look for it
     private void turnTowardBall() {
         if(!canSeeBall) canSeeNothingAction();
         else getPlayer().turn(directionBall);
@@ -192,19 +195,6 @@ public class Defender implements ControllerPlayer {
     private void turnTowardOwnGoal() {
         if(!canSeeOwnGoal) canSeeNothingAction();
         else getPlayer().turn(directionOwnGoal);
-    }
-
-    /**
-     * Randomly choose a kick direction.
-     * @return
-     */
-    private int randomKickDirectionValue() {
-        return -45 + random.nextInt(90);
-    }
-    
-    private void turnTowardOtherGoal(){
-        if(!canSeeOtherGoal) canSeeNothingAction();
-        else getPlayer().turn(directionOtherGoal);
     }
     
     @Override

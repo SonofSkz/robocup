@@ -8,6 +8,7 @@ package robocup;
 /**
  *
  * @author Mustafa
+ * ADT Pair; stores two objects of any type
  */
 public class Pair<A, B> {
     private A a;

@@ -1,3 +1,37 @@
+/*
+ROBOCUP PEAS:
+
+Performance: play a game of robocup following the rules and score more goals than the enemy team
+Environment: Known environment
+Actuators: Legs to kick the ball, hands to pick up the ball (goalie only)
+Sensors: Eyes to view the 90 degree FOV, ears to hear commands by other players or the coach
+
+ROBOCUP TASK ENVIRONMENT:
+
+Partially Observable:
+    The player can only see what is in range of the 90 degree viewing sensor, everything else
+    the player assumes is still there in the same direction it saw it last.
+Multi-Agent:
+    There are multiple thinking entities in the game at once and each may have similar or 
+    different state machines and behaviour
+Deterministic:
+    It is guaranteed that kicking a ball in a direction will send it to that direction, there
+    Whatever you tell the agent to do, it will do it
+Sequential:
+    At different states and at different times or distances, the agent does something different.
+    For instance, episodic environments would assume that each player does exactly the same thing
+    in every scenario regardless of position or state
+Dynamic:
+    While the player deliberates, the game goes on (ie, if the player is finding the furthest own
+    player then the game still goes on, he can get tackled while he is thinking)
+Continuous:
+    The player can do a multitude of actions at once, such as kick and run at the same time and
+    look and run
+Partially Known Environment:
+    Every player knows the rules of the game, but unless you constantly tell the player the distance
+    between itself and things it hasn't seen for a while, it won't know
+*/
+
 //package robocup;
 ////~--- non-JDK imports --------------------------------------------------------
 //

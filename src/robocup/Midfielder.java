@@ -94,32 +94,39 @@ public class Midfielder implements ControllerPlayer {
     @Override
     public void postInfo() {
         //before the beginning of the game get all players to rotate and 'find' all of the
+        ///before the beginning of the game get all players to rotate and 'find' all of the
         //in game components
         if(playMode == PlayMode.BEFORE_KICK_OFF){
             canSeeNothingAction();
+        }else if(playMode == PlayMode.CORNER_KICK_OWN || playMode == PlayMode.KICK_OFF_OTHER){
+            markOtherPlayer(); // move close to another player to help intercept the ball when play continues
         }else{ // continue with normal behaviour
-            //midfielder behaviour
             behaviour();
         }
     }
 
     private void behaviour(){
-        System.out.println(getPlayer().getNumber());
         if(playerState == 0){
+            //like the defender and goalie behaviour, turns to face the ball in place
             turnTowardBall();
+            //the the player moves to intercept the ball if the ball gets to a certain distance away from the player
             if(distanceBall <= REACTION_DISTANCE) playerState = 1;
         }
         if(playerState == 1){             
-            dribbleTowardOtherGoal();
+            dribbleTowardOtherGoal(); //the player dribbles the ball towards the goal and passes it to the nearest players
+            //the state changes when the player moves too far away from his default position
             if(distanceOwnGoal > HOME_DISTANCE + REACTION_DISTANCE) playerState = 2;
         }
         if(playerState == 2){
+            //the player moves to the default position
             returnHome();
+            //the player returns to the idle state when he is at the default position
             if(distanceOwnGoal <= HOME_DISTANCE) playerState = 0;
         }
     }
     
     private void dribbleTowardOtherGoal(){
+        //lightly kicks the ball if it is close enough
         turnTowardBall();
         if(distanceBall < 0.7){
             passOn();
@@ -127,11 +134,14 @@ public class Midfielder implements ControllerPlayer {
         getPlayer().dash(60);
     }
     
+    //moves the player towards the own goal
     private void returnHome(){
         turnTowardOwnGoal();
         getPlayer().dash(randomDashValueFast());
     }
 
+    //makes the player moe towards the closest enemy player and stands next to them hoping to intercept the ball
+    //in times of a free kick etc...
     private void markOtherPlayer(){
         PlayerData closestEnemy = getNearFarPlayers(visibleOtherPlayers).getLeft();
         getPlayer().turn(closestEnemy.getDirectionTo());
@@ -139,28 +149,31 @@ public class Midfielder implements ControllerPlayer {
     }
     
     private void passOn(){
+        //loop that finds all the enemy players that are less than 10 away from this player
         ArrayList<PlayerData> closestEnemies = new ArrayList();
         for(PlayerData e : visibleOtherPlayers){
             if(e.getDistanceTo() < 10) closestEnemies.add(e);
-        }
-        if(closestEnemies.size() >= 4) getPlayer().kick(70, getNearFarPlayers(visibleOwnPlayers).getRight().getDirectionTo());
-        else if(closestEnemies.isEmpty()) getPlayer().kick(100, directionOtherGoal);
-        else getPlayer().kick(30, getNearFarPlayers(visibleOwnPlayers).getLeft().getDirectionTo());
+        } 
+        if(closestEnemies.size() >= 4) getPlayer().kick(70, getNearFarPlayers(visibleOwnPlayers).getRight().getDirectionTo()); // if there are more than 4 enemies around the player then kick the ball hard to the furthest player from this player
+        else getPlayer().kick(30, getNearFarPlayers(visibleOwnPlayers).getLeft().getDirectionTo()); // else pass the ball lightly towards the closest friendsly player
     }
     
+    //method that returns a Pair object consising of the closest player of either team on the left side of the pair and the
+    //furthest on the right side of the pair
     private Pair<PlayerData, PlayerData> getNearFarPlayers(ArrayList<PlayerData> players){
-        PlayerData closestPlayer = new PlayerData();
-        PlayerData furthestPlayer = new PlayerData();
-        closestPlayer.setDistanceTo(104);
-        furthestPlayer.setDistanceTo(0);
-        for(PlayerData x : players){
+        PlayerData closestPlayer = new PlayerData(); // make a new place to record the closest player
+        PlayerData furthestPlayer = new PlayerData(); // make a new place to record the furthest player
+        closestPlayer.setDistanceTo(104); // set the distance of the closest one to the maximum distance
+        furthestPlayer.setDistanceTo(0); // set the distance of the furthest one to the minimum distance
+        for(PlayerData x : players){ //for each player in the vidible players arrayList,
             if(x.getDistanceTo() < closestPlayer.getDistanceTo()){
-                closestPlayer = x;
+                closestPlayer = x; // the closest player in the list is saved to the closestPlayer variable
             }
             if(x.getDistanceTo() > furthestPlayer.getDistanceTo()){
-                furthestPlayer = x;
+                furthestPlayer = x; // the furthest player in the list is saved to the furthestPlayer variable
             }
         }
+        //save the details to a pair
         Pair<PlayerData, PlayerData> p = new Pair();
         p.setLeft(closestPlayer);
         p.setRight(furthestPlayer);
@@ -168,7 +181,7 @@ public class Midfielder implements ControllerPlayer {
     }
     
     /**
-     * If the player can see nothing, it turns 180 degrees.
+     * If the player can see nothing, it turns 90 degrees.
      */
     private void canSeeNothingAction() {
         getPlayer().turn(90);
@@ -191,7 +204,7 @@ public class Midfielder implements ControllerPlayer {
     }
 
     /**
-     * Turn towards the ball.
+     * Turn towards the ball if the player can see it, else turn around if it cant.
      */
     private void turnTowardBall() {
         if(!canSeeBall) canSeeNothingAction();
@@ -199,7 +212,7 @@ public class Midfielder implements ControllerPlayer {
     }
 
     /**
-     * Turn towards our goal.
+     * Turn towards own goal if the player can see it, else turn around if it cant.
      */
     private void turnTowardOwnGoal() {
         if(!canSeeOwnGoal) canSeeNothingAction();
@@ -215,6 +228,7 @@ public class Midfielder implements ControllerPlayer {
     }
     
     private void turnTowardOtherGoal(){
+        //if the player can see the goal, turn towards it, else turn around looking for it
         if(!canSeeOtherGoal) canSeeNothingAction();
         else getPlayer().turn(directionOtherGoal);
     }

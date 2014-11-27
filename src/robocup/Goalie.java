@@ -42,12 +42,12 @@ public class Goalie implements ControllerPlayer {
     private boolean       canSeeBall    = false;
     
     private PlayMode playMode = null;
-    private int playerState = 0;
+    private int playerState = 0; // the state machine integer
     private double distanceOtherGoal = 0;
     private boolean canSeeOtherGoal = false;
     private double directionOtherGoal = 0;
-    private final ArrayList<PlayerData> visibleOwnPlayers;
-    private final ArrayList<PlayerData> visibleOtherPlayers;
+    private final ArrayList<PlayerData> visibleOwnPlayers; // an arrayList of all the visible players on your team
+    private final ArrayList<PlayerData> visibleOtherPlayers; // an arrayList of all the visible players on enemy team
     
     private double        directionBall;
     private double        directionOwnGoal;
@@ -138,112 +138,42 @@ public class Goalie implements ControllerPlayer {
         }
     }
     
-    private void dribbleTowardOtherGoal(){
-        turnTowardBall();
-        if(distanceBall < 0.7){
-            if(canSeeOtherGoal){
-                if(distanceOtherGoal < 30) getPlayer().kick(100, directionOtherGoal);
-                else getPlayer().kick(40, directionOtherGoal);
-            }else getPlayer().turnNeck(90);
-        }
-        getPlayer().dash(60);
-    }
-    
-    private void getClear(){
-        PlayerData closestEnemy = getClosestEnemy();
-        if(closestEnemy.getDistanceTo() < 10){
-            getPlayer().turn(closestEnemy.getDirectionTo() + 90);
-        }
-    }
-    
-    private PlayerData getClosestEnemy(){
-        PlayerData closestEnemy = new PlayerData();
-        closestEnemy.setDistanceTo(104);
-        for(PlayerData x : visibleOtherPlayers){
-            if(x.getDistanceTo() < closestEnemy.getDistanceTo()){
-                closestEnemy = x;
-            }
-        }
-        return closestEnemy;
-    }
-    
     private void canSeeBallAction() {
+        //the goalie dashes towards the ball
         getPlayer().dash(this.randomDashValueFast());
         turnTowardBall();
-        if (distanceBall < 0.7 && distanceOtherGoal < 20) {
+        if (distanceBall < 0.7) {
+            // the goalie kicks the ball far away when it is in range of the kick
             getPlayer().kick(100, directionOtherGoal);
-        } else if (distanceBall < 0.8){
-            getPlayer().kick(20, directionOtherGoal);
         }
 //        if (log.isDebugEnabled()) {
 //            log.debug("b(" + directionBall + "," + distanceBall + ")");
 //        }
     }
-
-    /** {@inheritDoc}
-     * @param flag
-     * @param distance
-     * @param direction
-     * @param distChange
-     * @param dirChange
-     * @param bodyFacingDirection
-     * @param headFacingDirection */
     @Override
     public void infoSeeFlagRight(Flag flag, double distance, double direction, double distChange, double dirChange,
                                  double bodyFacingDirection, double headFacingDirection) {
         canSeeNothing = false;
     }
 
-    /** {@inheritDoc}
-     * @param flag
-     * @param distance
-     * @param direction
-     * @param distChange
-     * @param dirChange
-     * @param bodyFacingDirection
-     * @param headFacingDirection*/
     @Override
     public void infoSeeFlagLeft(Flag flag, double distance, double direction, double distChange, double dirChange,
                                 double bodyFacingDirection, double headFacingDirection) {
         canSeeNothing = false;
     }
-
-    /** {@inheritDoc}
-     * @param flag
-     * @param distance
-     * @param dirChange
-     * @param direction
-     * @param distChange
-     * @param bodyFacingDirection
-     * @param headFacingDirection */
+    
     @Override
     public void infoSeeFlagOwn(Flag flag, double distance, double direction, double distChange, double dirChange,
                                double bodyFacingDirection, double headFacingDirection) {
         canSeeNothing = false;
     }
 
-    /** {@inheritDoc}
-     * @param flag
-     * @param distance
-     * @param direction
-     * @param distChange
-     * @param dirChange
-     * @param bodyFacingDirection
-     * @param headFacingDirection */
     @Override
     public void infoSeeFlagOther(Flag flag, double distance, double direction, double distChange, double dirChange,
                                  double bodyFacingDirection, double headFacingDirection) {
         canSeeNothing = false;
     }
 
-    /** {@inheritDoc}
-     * @param flag
-     * @param distance
-     * @param distChange
-     * @param direction
-     * @param dirChange
-     * @param bodyFacingDirection
-     * @param headFacingDirection */
     @Override
     public void infoSeeFlagCenter(Flag flag, double distance, double direction, double distChange, double dirChange,
                                   double bodyFacingDirection, double headFacingDirection) {
@@ -253,14 +183,6 @@ public class Goalie implements ControllerPlayer {
         canSeeCentre = true;
     }
 
-    /** {@inheritDoc}
-     * @param flag
-     * @param distance
-     * @param direction
-     * @param distChange
-     * @param dirChange
-     * @param bodyFacingDirection
-     * @param headFacingDirection */
     @Override
     public void infoSeeFlagCornerOwn(Flag flag, double distance, double direction, double distChange, double dirChange,
                                      double bodyFacingDirection, double headFacingDirection) {
@@ -308,7 +230,9 @@ public class Goalie implements ControllerPlayer {
         this.canSeeOtherGoal = true;
         this.directionOtherGoal = direction;
         this.canSeeNothing = false;
-        this.distanceOwnGoal = 104 - this.distanceOtherGoal;
+        this.distanceOwnGoal = 104 - this.distanceOtherGoal; //reminds that player that although they cannot see their own
+                                                             //goal, it doesn't change position
+        //redacted code that tells the player exactly where they are in terms of anything -- scrapped due to possible complexity issues
 //        double y = distance*Math.sin(direction);
 //        double z = distance*Math.cos(direction);
 //        double a = (double)(104-z);
@@ -332,7 +256,7 @@ public class Goalie implements ControllerPlayer {
     public void infoSeePlayerOther(int number, boolean goalie, double distance, double direction, double distChange,
                                    double dirChange, double bodyFacingDirection, double headFacingDirection) {
         PlayerData pd = new PlayerData(distance, direction);
-        visibleOtherPlayers.add(pd);
+        visibleOtherPlayers.add(pd); // adds the distance and direction data of the enemy player
     }
 
     /** {@inheritDoc} */
@@ -341,7 +265,7 @@ public class Goalie implements ControllerPlayer {
                                  double dirChange, double bodyFacingDirection, double headFacingDirection) {
         
         PlayerData p = new PlayerData(distance, direction);
-        visibleOwnPlayers.add(p);
+        visibleOwnPlayers.add(p); // adds the distance and direction data of the friendly player
     }
 
     /** {@inheritDoc} */
