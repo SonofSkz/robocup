@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 /**
-* A simple controller. It implements the following simple behaviour.
+* A simple controller. It implements the following behaviour. Attacker should attempt to kick the ball into the goal.
 *
 * @author Max
 */
