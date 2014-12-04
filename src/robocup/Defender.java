@@ -125,7 +125,7 @@ public class Defender implements ControllerPlayer {
             }else{ getPlayer().turnNeck(90); getPlayer().turnNeck(-90); } // turn neck to keep track of whats going on
         }
         //dashes after the ball
-        getPlayer().dash(60);
+        getPlayer().dash(100);
     }
     
     private void returnHome(){
@@ -138,7 +138,7 @@ public class Defender implements ControllerPlayer {
         //get the closest enemy player and go towards it
         PlayerData closestEnemy = getClosestPlayer(visibleOtherPlayers);
         getPlayer().turn(closestEnemy.getDirectionTo());
-        getPlayer().dash(50);
+        getPlayer().dash(100);
     }
     
     private void getClear(){

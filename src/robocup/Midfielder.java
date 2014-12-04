@@ -131,13 +131,13 @@ public class Midfielder implements ControllerPlayer {
         if(distanceBall < 0.7){
             passOn();
         }
-        getPlayer().dash(60);
+        getPlayer().dash(100);
     }
     
     //moves the player towards the own goal
     private void returnHome(){
         turnTowardOwnGoal();
-        getPlayer().dash(randomDashValueFast());
+        getPlayer().dash(100);
     }
 
     //makes the player moe towards the closest enemy player and stands next to them hoping to intercept the ball
@@ -145,7 +145,7 @@ public class Midfielder implements ControllerPlayer {
     private void markOtherPlayer(){
         PlayerData closestEnemy = getNearFarPlayers(visibleOtherPlayers).getLeft();
         getPlayer().turn(closestEnemy.getDirectionTo());
-        getPlayer().dash(50);
+        getPlayer().dash(100);
     }
     
     private void passOn(){

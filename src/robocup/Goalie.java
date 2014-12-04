@@ -140,7 +140,7 @@ public class Goalie implements ControllerPlayer {
     
     private void canSeeBallAction() {
         //the goalie dashes towards the ball
-        getPlayer().dash(this.randomDashValueFast());
+        getPlayer().dash(100);
         turnTowardBall();
         if (distanceBall < 0.7) {
             // the goalie kicks the ball far away when it is in range of the kick
